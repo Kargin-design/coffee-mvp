@@ -13,6 +13,8 @@ const formatTime = (seconds) => {
   return `${mins}m${String(secs).padStart(2, '0')}s`
 }
 
+const API_BASE = import.meta.env.VITE_API_BASE || ''
+
 function App() {
   const [coffee, setCoffee] = useState('')
   const [water, setWater] = useState('')
@@ -28,7 +30,7 @@ function App() {
       return
     }
 
-    const res = await fetch(`/api/calc/coffee?coffee=${num}`)
+    const res = await fetch(`${API_BASE}/api/calc/coffee?coffee=${num}`)
     if (!res.ok) return
 
     const data = await res.json()
@@ -47,7 +49,7 @@ function App() {
       return
     }
 
-    const res = await fetch(`/api/calc/water?water=${num}`)
+    const res = await fetch(`${API_BASE}/api/calc/water?water=${num}`)
     if (!res.ok) return
 
     const data = await res.json()
