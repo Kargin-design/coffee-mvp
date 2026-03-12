@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  color: #111111;
+  background-color: #ffffff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+}
+
+#root {
+  min-height: 100svh;
+}
