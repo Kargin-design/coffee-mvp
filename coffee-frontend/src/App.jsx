@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Input from './components/Input/Input'
 import v60Img from './assets/v60.webp'
 import './App.css'
@@ -17,10 +17,18 @@ const formatTime = (seconds) => {
 const API_BASE = import.meta.env.VITE_API_BASE || ''
 
 function App() {
+  const [activeTab, setActiveTab] = useState('sweet')
+  const [lastEdited, setLastEdited] = useState('coffee')
   const [coffee, setCoffee] = useState('')
   const [water, setWater] = useState('')
   const [time, setTime] = useState('')
   const [temp, setTemp] = useState('')
+  const segmentRef = useRef(null)
+  const indicatorRef = useRef(null)
+  const tabRefs = useRef([])
+  const springRef = useRef({ x: 0, vx: 0, w: 0, vw: 0, raf: null })
+
+  const resolveMode = () => (activeTab === 'custom' ? 'sweet' : activeTab)
 
   const updateFromCoffee = async (value) => {
     const num = Number(value)
@@ -31,7 +39,10 @@ function App() {
       return
     }
 
-    const res = await fetch(`${API_BASE}/api/calc/coffee?coffee=${num}`)
+    const mode = resolveMode()
+    const res = await fetch(
+      `${API_BASE}/api/calc/coffee?coffee=${num}&mode=${mode}`
+    )
     if (!res.ok) return
 
     const data = await res.json()
@@ -50,7 +61,10 @@ function App() {
       return
     }
 
-    const res = await fetch(`${API_BASE}/api/calc/water?water=${num}`)
+    const mode = resolveMode()
+    const res = await fetch(
+      `${API_BASE}/api/calc/water?water=${num}&mode=${mode}`
+    )
     if (!res.ok) return
 
     const data = await res.json()
@@ -61,8 +75,86 @@ function App() {
   }
 
   useEffect(() => {
+    setLastEdited('coffee')
     updateFromCoffee('18')
   }, [])
+
+  useEffect(() => {
+    if (lastEdited === 'water') {
+      updateFromWater(water)
+    } else {
+      updateFromCoffee(coffee)
+    }
+  }, [activeTab])
+
+  useLayoutEffect(() => {
+    const segment = segmentRef.current
+    const indicator = indicatorRef.current
+    const activeIndex = ['sweet', 'balance', 'custom'].indexOf(activeTab)
+    const activeButton = tabRefs.current[activeIndex]
+
+    if (!segment || !indicator || !activeButton) return
+
+    const segmentRect = segment.getBoundingClientRect()
+    const buttonRect = activeButton.getBoundingClientRect()
+    const targetX = buttonRect.left - segmentRect.left
+    const targetW = buttonRect.width
+
+    const state = springRef.current
+    const stiffness = 300
+    const damping = 20
+    const mass = 1
+
+    if (state.w === 0) {
+      state.x = targetX
+      state.w = targetW
+      indicator.style.transform = `translateX(${state.x}px)`
+      indicator.style.width = `${state.w}px`
+      return
+    }
+
+    let last = performance.now()
+
+    const step = (now) => {
+      const dt = Math.min(0.032, (now - last) / 1000)
+      last = now
+
+      const ax =
+        (-stiffness * (state.x - targetX) - damping * state.vx) / mass
+      state.vx += ax * dt
+      state.x += state.vx * dt
+
+      const aw =
+        (-stiffness * (state.w - targetW) - damping * state.vw) / mass
+      state.vw += aw * dt
+      state.w += state.vw * dt
+
+      indicator.style.transform = `translateX(${state.x}px)`
+      indicator.style.width = `${state.w}px`
+
+      const settled =
+        Math.abs(state.x - targetX) < 0.1 &&
+        Math.abs(state.vx) < 0.1 &&
+        Math.abs(state.w - targetW) < 0.1 &&
+        Math.abs(state.vw) < 0.1
+
+      if (settled) {
+        state.x = targetX
+        state.w = targetW
+        state.vx = 0
+        state.vw = 0
+        indicator.style.transform = `translateX(${state.x}px)`
+        indicator.style.width = `${state.w}px`
+        state.raf = null
+        return
+      }
+
+      state.raf = requestAnimationFrame(step)
+    }
+
+    if (state.raf) cancelAnimationFrame(state.raf)
+    state.raf = requestAnimationFrame(step)
+  }, [activeTab])
 
   return (
     <main className="page">
@@ -101,14 +193,36 @@ function App() {
 
         <section className="section">
           <h2 className="section__title">Калькулятор</h2>
-          <div className="segment">
-            <button className="segment__item segment__item--active" type="button">
+          <div className="segment" ref={segmentRef}>
+            <div className="segment__indicator" ref={indicatorRef} />
+            <button
+              className={`segment__item ${activeTab === 'sweet' ? 'segment__item--active' : ''}`}
+              type="button"
+              ref={(el) => {
+                tabRefs.current[0] = el
+              }}
+              onClick={() => setActiveTab('sweet')}
+            >
               Сладость
             </button>
-            <button className="segment__item" type="button">
+            <button
+              className={`segment__item ${activeTab === 'balance' ? 'segment__item--active' : ''}`}
+              type="button"
+              ref={(el) => {
+                tabRefs.current[1] = el
+              }}
+              onClick={() => setActiveTab('balance')}
+            >
               Баланс
             </button>
-            <button className="segment__item" type="button">
+            <button
+              className={`segment__item ${activeTab === 'custom' ? 'segment__item--active' : ''}`}
+              type="button"
+              ref={(el) => {
+                tabRefs.current[2] = el
+              }}
+              onClick={() => setActiveTab('custom')}
+            >
               Своё
             </button>
           </div>
@@ -120,6 +234,7 @@ function App() {
                 value={coffee}
                 onChange={(event) => {
                   const next = event.target.value
+                  setLastEdited('coffee')
                   setCoffee(next)
                   updateFromCoffee(next)
                 }}
@@ -132,6 +247,7 @@ function App() {
                 value={water}
                 onChange={(event) => {
                   const next = event.target.value
+                  setLastEdited('water')
                   setWater(next)
                   updateFromWater(next)
                 }}

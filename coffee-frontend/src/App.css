@@ -86,6 +86,17 @@
   padding: 4px;
   gap: 4px;
   margin-bottom: 16px;
+  position: relative;
+}
+
+.segment__indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  border-radius: 999px;
+  background: #1d1d1f;
+  z-index: 0;
 }
 
 .segment__item {
@@ -97,10 +108,11 @@
   font-size: 13px;
   color: #4c4c4c;
   cursor: pointer;
+  position: relative;
+  z-index: 1;
 }
 
 .segment__item--active {
-  background: #1d1d1f;
   color: #ffffff;
 }
 

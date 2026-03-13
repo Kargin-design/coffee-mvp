@@ -15,12 +15,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BASE = {
-    "coffee": 18,
-    "water": 250,
-    "time": 94,
-    "temp": 95,
-    "ratio": 14,
+BASES = {
+    "sweet": {
+        "coffee": 18,
+        "water": 250,
+        "time": 94,
+        "temp": 95,
+        "ratio": 14,
+    },
+    "balance": {
+        "coffee": 18,
+        "water": 270,
+        "time": 110,
+        "temp": 94.5,
+        "ratio": 15,
+    },
 }
 
 
@@ -28,12 +37,24 @@ def clamp(value: float, min_value: float, max_value: float) -> float:
     return max(min_value, min(value, max_value))
 
 
-def calc_from_coffee(coffee: float) -> dict:
-    water = coffee * BASE["ratio"]
-    time = BASE["time"] * (coffee / BASE["coffee"]) ** 0.5
-    temp = BASE["temp"] - 0.4 * (coffee - BASE["coffee"])
-    temp = clamp(temp, 92, 96)
-    bloom = coffee * 3
+def resolve_base(mode: str) -> dict:
+    if mode == "balance":
+        return BASES["balance"]
+    return BASES["sweet"]
+
+
+def calc_from_coffee(coffee: float, base: dict) -> dict:
+    water = coffee * base["ratio"]
+    time = base["time"] * (coffee / base["coffee"]) ** 0.5
+
+    if base is BASES["balance"]:
+        temp = base["temp"] + 0.25 * (coffee - base["coffee"])
+        temp = clamp(temp, 93, 97)
+        bloom = coffee * 2.5
+    else:
+        temp = base["temp"] - 0.4 * (coffee - base["coffee"])
+        temp = clamp(temp, 92, 96)
+        bloom = coffee * 3
 
     return {
         "coffee": round(coffee, 1),
@@ -44,12 +65,18 @@ def calc_from_coffee(coffee: float) -> dict:
     }
 
 
-def calc_from_water(water: float) -> dict:
-    coffee = water / BASE["ratio"]
-    time = BASE["time"] * (coffee / BASE["coffee"]) ** 0.5
-    temp = BASE["temp"] - 0.4 * (coffee - BASE["coffee"])
-    temp = clamp(temp, 92, 96)
-    bloom = coffee * 3
+def calc_from_water(water: float, base: dict) -> dict:
+    coffee = water / base["ratio"]
+    time = base["time"] * (coffee / base["coffee"]) ** 0.5
+
+    if base is BASES["balance"]:
+        temp = base["temp"] + 0.25 * (coffee - base["coffee"])
+        temp = clamp(temp, 93, 97)
+        bloom = coffee * 2.5
+    else:
+        temp = base["temp"] - 0.4 * (coffee - base["coffee"])
+        temp = clamp(temp, 92, 96)
+        bloom = coffee * 3
 
     return {
         "coffee": round(coffee, 1),
@@ -61,10 +88,18 @@ def calc_from_water(water: float) -> dict:
 
 
 @app.get("/api/calc/coffee")
-def calc_by_coffee(coffee: float = Query(..., gt=0, le=1000)):
-    return calc_from_coffee(coffee)
+def calc_by_coffee(
+    coffee: float = Query(..., gt=0, le=1000),
+    mode: str = Query("sweet"),
+):
+    base = resolve_base(mode)
+    return calc_from_coffee(coffee, base)
 
 
 @app.get("/api/calc/water")
-def calc_by_water(water: float = Query(..., gt=0, le=10000)):
-    return calc_from_water(water)
+def calc_by_water(
+    water: float = Query(..., gt=0, le=10000),
+    mode: str = Query("sweet"),
+):
+    base = resolve_base(mode)
+    return calc_from_water(water, base)
