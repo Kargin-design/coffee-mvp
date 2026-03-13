@@ -50,13 +50,23 @@ function App() {
     setLoading(false)
   }
 
-  const resolveMode = () => (activeTab === 'custom' ? 'sweet' : activeTab)
+  const resolveMode = () => activeTab
   const coffeePlaceholder = loading ? 'Загружаю' : 'Напр.18'
   const waterPlaceholder = loading ? 'Загружаю' : 'Напр.250'
   const showEmptyState = coffee.trim() === '' && water.trim() === ''
   const statusPlaceholder = showEmptyState ? '-' : 'Загружаю'
 
-  const updateFromCoffee = async (value) => {
+  const buildUrl = (path, params) => {
+    const search = new URLSearchParams()
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        search.append(key, String(val))
+      }
+    })
+    return `${API_BASE}${path}?${search.toString()}`
+  }
+
+  const updateFromCoffee = async (value, ratioOverride) => {
     const num = Number(value)
     if (!value || Number.isNaN(num)) {
       setWater('')
@@ -68,8 +78,10 @@ function App() {
     const requestId = ++requestIdRef.current
     beginRequest()
     const mode = resolveMode()
+    const ratioParam =
+      mode === 'custom' ? ratioOverride ?? ratio : undefined
     const res = await fetch(
-      `${API_BASE}/api/calc/coffee?coffee=${num}&mode=${mode}`
+      buildUrl('/api/calc/coffee', { coffee: num, mode, ratio: ratioParam })
     )
     if (!res.ok) {
       if (requestId === requestIdRef.current) {
@@ -84,11 +96,14 @@ function App() {
       setWater(String(data.water))
       setTime(formatTime(data.time))
       setTemp(String(data.temp))
+      if (data.ratio !== undefined) {
+        setRatio(Number(data.ratio))
+      }
       endRequest()
     }
   }
 
-  const updateFromWater = async (value) => {
+  const updateFromWater = async (value, ratioOverride) => {
     const num = Number(value)
     if (!value || Number.isNaN(num)) {
       setCoffee('')
@@ -100,8 +115,10 @@ function App() {
     const requestId = ++requestIdRef.current
     beginRequest()
     const mode = resolveMode()
+    const ratioParam =
+      mode === 'custom' ? ratioOverride ?? ratio : undefined
     const res = await fetch(
-      `${API_BASE}/api/calc/water?water=${num}&mode=${mode}`
+      buildUrl('/api/calc/water', { water: num, mode, ratio: ratioParam })
     )
     if (!res.ok) {
       if (requestId === requestIdRef.current) {
@@ -116,6 +133,9 @@ function App() {
       setWater(String(data.water))
       setTime(formatTime(data.time))
       setTemp(String(data.temp))
+      if (data.ratio !== undefined) {
+        setRatio(Number(data.ratio))
+      }
       endRequest()
     }
   }
@@ -127,12 +147,27 @@ function App() {
   }, [])
 
   useEffect(() => {
+    const ratioParam = activeTab === 'custom' ? ratio : undefined
     if (lastEdited === 'water') {
-      updateFromWater(water)
+      updateFromWater(water, ratioParam)
     } else {
-      updateFromCoffee(coffee)
+      updateFromCoffee(coffee, ratioParam)
     }
   }, [activeTab])
+
+  const handleRatioChange = (nextRatio) => {
+    setRatio(nextRatio)
+    if (activeTab !== 'custom') return
+
+    if (lastEdited === 'water' && water.trim() !== '') {
+      updateFromWater(water, nextRatio)
+      return
+    }
+
+    if (coffee.trim() !== '') {
+      updateFromCoffee(coffee, nextRatio)
+    }
+  }
 
   useLayoutEffect(() => {
     const segment = segmentRef.current
@@ -342,7 +377,13 @@ function App() {
 
         {activeTab === 'custom' ? (
           <section className="section custom-slider">
-            <Slider value={ratio} min={12} max={18} step={1} onChange={setRatio} />
+            <Slider
+              value={ratio}
+              min={12}
+              max={18}
+              step={1}
+              onChange={handleRatioChange}
+            />
           </section>
         ) : null}
       </div>
