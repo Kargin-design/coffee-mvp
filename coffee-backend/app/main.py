@@ -49,6 +49,13 @@ ESPRESSO_BALANCE_BASE = {
     "time": 30,
     "temp": 94,
 }
+ESPRESSO_CUSTOM_BASE = {
+    "coffee": 18,
+    "water": 36,
+    "ratio": 2,
+    "time": 29,
+    "temp": 94,
+}
 
 
 def clamp(value: float, min_value: float, max_value: float) -> float:
@@ -198,6 +205,41 @@ def calc_espresso_balance(
     }
 
 
+def calc_espresso_custom(
+    coffee: Optional[float],
+    water: Optional[float],
+    ratio: Optional[float],
+) -> dict:
+    base = ESPRESSO_CUSTOM_BASE
+
+    if ratio is None:
+        ratio = base["ratio"]
+    ratio = clamp(ratio, 1.5, 3)
+
+    if coffee and not water:
+        water = coffee * ratio
+
+    if water and not coffee:
+        coffee = water / ratio
+
+    if coffee and water:
+        ratio = water / coffee
+        ratio = clamp(ratio, 1.5, 3)
+
+    time = base["time"] * (coffee / base["coffee"]) ** 0.5
+
+    temp = base["temp"] + 0.2 * (ratio - base["ratio"])
+    temp = clamp(temp, 91, 97)
+
+    return {
+        "coffee": round(coffee, 1),
+        "water": round(water, 1),
+        "ratio": round(ratio, 2),
+        "time": round(time),
+        "temp": round(temp, 1),
+    }
+
+
 @app.get("/api/calc/coffee")
 def calc_by_coffee(
     coffee: float = Query(..., gt=0, le=1000),
@@ -210,6 +252,8 @@ def calc_by_coffee(
             return calc_espresso_sweet(coffee, None)
         if mode == "balance":
             return calc_espresso_balance(coffee, None)
+        if mode == "custom":
+            return calc_espresso_custom(coffee, None, ratio)
         raise HTTPException(status_code=400, detail="mode not supported")
     if mode == "custom":
         return calc_custom(coffee, None, ratio)
@@ -229,6 +273,8 @@ def calc_by_water(
             return calc_espresso_sweet(None, water)
         if mode == "balance":
             return calc_espresso_balance(None, water)
+        if mode == "custom":
+            return calc_espresso_custom(None, water, ratio)
         raise HTTPException(status_code=400, detail="mode not supported")
     if mode == "custom":
         return calc_custom(None, water, ratio)

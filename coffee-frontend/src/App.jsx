@@ -170,11 +170,6 @@ function App() {
   }, [activeTab])
 
   useEffect(() => {
-    if (method === 'espresso' && !['sweet', 'balance'].includes(activeTab)) {
-      setActiveTab('sweet')
-      return
-    }
-
     const ratioParam = activeTab === 'custom' ? ratio : undefined
     if (lastEdited === 'water') {
       updateFromWater(water, ratioParam)
@@ -343,7 +338,6 @@ function App() {
                 tabRefs.current[2] = el
               }}
               onClick={() => setActiveTab('custom')}
-              disabled={method === 'espresso'}
             >
               Своё
             </button>
