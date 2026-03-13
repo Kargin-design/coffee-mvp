@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import './Slider.css'
 
 function Slider({
@@ -12,6 +13,7 @@ function Slider({
   reverse = false,
   className = '',
 }) {
+  const lastValueRef = useRef(null)
   const safeValue = Number.isFinite(value) ? value : min
   const normalized = (safeValue - min) / (max - min)
   const percent = (reverse ? 1 - normalized : normalized) * 100
@@ -44,7 +46,16 @@ function Slider({
           max={max}
           step={step}
           value={safeValue}
-          onChange={(event) => onChange?.(Number(event.target.value))}
+          onChange={(event) => {
+            const nextValue = Number(event.target.value)
+            if (lastValueRef.current !== nextValue) {
+              lastValueRef.current = nextValue
+              if (navigator?.vibrate) {
+                navigator.vibrate(12)
+              }
+            }
+            onChange?.(nextValue)
+          }}
           aria-label="Ratio"
         />
         <div className="slider__thumb" aria-hidden="true" />
