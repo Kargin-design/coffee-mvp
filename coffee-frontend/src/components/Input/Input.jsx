@@ -2,7 +2,7 @@ import './Input.css'
 
 function Input({
   value,
-  placeholder = '18',
+  placeholder = 'Загружаю',
   suffix = 'Гр',
   disabled = false,
   loading = false,

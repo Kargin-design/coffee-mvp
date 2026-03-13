@@ -29,6 +29,24 @@ function App() {
   const tabRefs = useRef([])
   const springRef = useRef({ x: 0, vx: 0, w: 0, vw: 0, raf: null })
   const requestIdRef = useRef(0)
+  const loadingTimerRef = useRef(null)
+
+  const beginRequest = () => {
+    if (loadingTimerRef.current) {
+      clearTimeout(loadingTimerRef.current)
+    }
+    loadingTimerRef.current = setTimeout(() => {
+      setLoading(true)
+    }, 100)
+  }
+
+  const endRequest = () => {
+    if (loadingTimerRef.current) {
+      clearTimeout(loadingTimerRef.current)
+      loadingTimerRef.current = null
+    }
+    setLoading(false)
+  }
 
   const resolveMode = () => (activeTab === 'custom' ? 'sweet' : activeTab)
 
@@ -42,14 +60,14 @@ function App() {
     }
 
     const requestId = ++requestIdRef.current
-    setLoading(true)
+    beginRequest()
     const mode = resolveMode()
     const res = await fetch(
       `${API_BASE}/api/calc/coffee?coffee=${num}&mode=${mode}`
     )
     if (!res.ok) {
       if (requestId === requestIdRef.current) {
-        setLoading(false)
+        endRequest()
       }
       return
     }
@@ -60,7 +78,7 @@ function App() {
       setWater(String(data.water))
       setTime(formatTime(data.time))
       setTemp(String(data.temp))
-      setLoading(false)
+      endRequest()
     }
   }
 
@@ -74,14 +92,14 @@ function App() {
     }
 
     const requestId = ++requestIdRef.current
-    setLoading(true)
+    beginRequest()
     const mode = resolveMode()
     const res = await fetch(
       `${API_BASE}/api/calc/water?water=${num}&mode=${mode}`
     )
     if (!res.ok) {
       if (requestId === requestIdRef.current) {
-        setLoading(false)
+        endRequest()
       }
       return
     }
@@ -92,7 +110,7 @@ function App() {
       setWater(String(data.water))
       setTime(formatTime(data.time))
       setTemp(String(data.temp))
-      setLoading(false)
+      endRequest()
     }
   }
 
