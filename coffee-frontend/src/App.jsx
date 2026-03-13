@@ -381,6 +381,7 @@ function App() {
                 suffix="Гр"
                 loading={loading}
                 placeholder={coffeePlaceholder}
+                numeric
               />
             </div>
             <div className="field">
@@ -402,6 +403,7 @@ function App() {
                 suffix="Мл"
                 loading={loading}
                 placeholder={waterPlaceholder}
+                numeric
               />
             </div>
             <div className="field">
