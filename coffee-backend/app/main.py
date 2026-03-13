@@ -35,6 +35,14 @@ BASES = {
 }
 
 RATIO_LIMITS = {"min": 12, "max": 18}
+ESPRESSO_LIMITS = {"min": 1.5, "max": 3}
+ESPRESSO_SWEET_BASE = {
+    "dose": 18,
+    "yield": 36,
+    "ratio": 2,
+    "time": 28,
+    "temp": 93.5,
+}
 
 
 def clamp(value: float, min_value: float, max_value: float) -> float:
@@ -131,12 +139,52 @@ def calc_custom(
     }
 
 
+def calc_espresso_sweet(
+    dose: Optional[float],
+    yield_drink: Optional[float],
+    ratio: Optional[float],
+) -> dict:
+    base = ESPRESSO_SWEET_BASE
+
+    if ratio is None:
+        ratio = base["ratio"]
+    ratio = clamp(ratio, ESPRESSO_LIMITS["min"], ESPRESSO_LIMITS["max"])
+
+    if dose and not yield_drink:
+        yield_drink = dose * ratio
+
+    if yield_drink and not dose:
+        dose = yield_drink / ratio
+
+    if dose and yield_drink:
+        ratio = yield_drink / dose
+        ratio = clamp(ratio, ESPRESSO_LIMITS["min"], ESPRESSO_LIMITS["max"])
+
+    time = base["time"] * (dose / base["dose"]) ** 0.5
+
+    temp = base["temp"] - 0.2 * (ratio - base["ratio"])
+    temp = clamp(temp, 91, 95)
+
+    return {
+        "coffee": round(dose, 1),
+        "water": round(yield_drink, 1),
+        "ratio": round(ratio, 2),
+        "time": round(time),
+        "temp": round(temp, 1),
+    }
+
+
 @app.get("/api/calc/coffee")
 def calc_by_coffee(
     coffee: float = Query(..., gt=0, le=1000),
     mode: str = Query("sweet"),
     ratio: Optional[float] = Query(None),
+    method: str = Query("v60"),
 ):
+    if method == "espresso":
+        if mode != "sweet":
+            raise HTTPException(status_code=400, detail="mode not supported")
+        return calc_espresso_sweet(coffee, None, ratio)
     if mode == "custom":
         return calc_custom(coffee, None, ratio)
     base = resolve_base(mode)
@@ -148,7 +196,12 @@ def calc_by_water(
     water: float = Query(..., gt=0, le=10000),
     mode: str = Query("sweet"),
     ratio: Optional[float] = Query(None),
+    method: str = Query("v60"),
 ):
+    if method == "espresso":
+        if mode != "sweet":
+            raise HTTPException(status_code=400, detail="mode not supported")
+        return calc_espresso_sweet(None, water, ratio)
     if mode == "custom":
         return calc_custom(None, water, ratio)
     base = resolve_base(mode)

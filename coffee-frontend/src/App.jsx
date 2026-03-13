@@ -21,6 +21,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('sweet')
   const [lastEdited, setLastEdited] = useState('coffee')
   const [loading, setLoading] = useState(false)
+  const [method, setMethod] = useState('v60')
   const [coffee, setCoffee] = useState('')
   const [water, setWater] = useState('')
   const [time, setTime] = useState('')
@@ -81,7 +82,12 @@ function App() {
     const ratioParam =
       mode === 'custom' ? ratioOverride ?? ratio : undefined
     const res = await fetch(
-      buildUrl('/api/calc/coffee', { coffee: num, mode, ratio: ratioParam })
+      buildUrl('/api/calc/coffee', {
+        coffee: num,
+        mode,
+        ratio: ratioParam,
+        method,
+      })
     )
     if (!res.ok) {
       if (requestId === requestIdRef.current) {
@@ -118,7 +124,12 @@ function App() {
     const ratioParam =
       mode === 'custom' ? ratioOverride ?? ratio : undefined
     const res = await fetch(
-      buildUrl('/api/calc/water', { water: num, mode, ratio: ratioParam })
+      buildUrl('/api/calc/water', {
+        water: num,
+        mode,
+        ratio: ratioParam,
+        method,
+      })
     )
     if (!res.ok) {
       if (requestId === requestIdRef.current) {
@@ -154,6 +165,20 @@ function App() {
       updateFromCoffee(coffee, ratioParam)
     }
   }, [activeTab])
+
+  useEffect(() => {
+    if (method === 'espresso' && activeTab !== 'sweet') {
+      setActiveTab('sweet')
+      return
+    }
+
+    const ratioParam = activeTab === 'custom' ? ratio : undefined
+    if (lastEdited === 'water') {
+      updateFromWater(water, ratioParam)
+    } else {
+      updateFromCoffee(coffee, ratioParam)
+    }
+  }, [method])
 
   const handleRatioChange = (nextRatio) => {
     setRatio(nextRatio)
@@ -253,12 +278,20 @@ function App() {
         <section className="section">
           <h2 className="section__title">Способ приготовления</h2>
           <div className="methods">
-            <button className="method method--active" type="button">
+            <button
+              className={`method ${method === 'v60' ? 'method--active' : ''}`}
+              type="button"
+              onClick={() => setMethod('v60')}
+            >
               <img className="method__image" src={v60Img} alt="Воронка V60" />
               <span className="method__label">Воронка V60</span>
             </button>
-            <button className="method" type="button">
-              <span className="method__placeholder">Placeholder</span>
+            <button
+              className={`method ${method === 'espresso' ? 'method--active' : ''}`}
+              type="button"
+              onClick={() => setMethod('espresso')}
+            >
+              <span className="method__placeholder">Эспрессо</span>
             </button>
             <button className="method" type="button">
               <span className="method__placeholder">Placeholder</span>
@@ -296,6 +329,7 @@ function App() {
                 tabRefs.current[1] = el
               }}
               onClick={() => setActiveTab('balance')}
+              disabled={method === 'espresso'}
             >
               Баланс
             </button>
@@ -306,6 +340,7 @@ function App() {
                 tabRefs.current[2] = el
               }}
               onClick={() => setActiveTab('custom')}
+              disabled={method === 'espresso'}
             >
               Своё
             </button>

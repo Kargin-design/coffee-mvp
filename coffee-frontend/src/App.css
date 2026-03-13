@@ -116,6 +116,11 @@
   z-index: 1;
 }
 
+.segment__item:disabled {
+  cursor: not-allowed;
+  color: #a1a1a1;
+}
+
 .segment__item--active {
   color: #ffffff;
 }
