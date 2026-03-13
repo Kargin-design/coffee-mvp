@@ -385,6 +385,7 @@ function App() {
               max={18}
               step={1}
               onChange={handleRatioChange}
+              reverse
             />
           </section>
         ) : null}

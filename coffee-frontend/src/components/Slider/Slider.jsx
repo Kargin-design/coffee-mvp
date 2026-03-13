@@ -9,10 +9,12 @@ function Slider({
   leftLabel = 'Менее насыщенно',
   rightLabel = 'Более насыщенно',
   showTicks = false,
+  reverse = false,
   className = '',
 }) {
   const safeValue = Number.isFinite(value) ? value : min
-  const percent = ((safeValue - min) / (max - min)) * 100
+  const normalized = (safeValue - min) / (max - min)
+  const percent = (reverse ? 1 - normalized : normalized) * 100
   const steps = Math.floor((max - min) / step)
 
   return (
@@ -23,7 +25,9 @@ function Slider({
           {showTicks
             ? Array.from({ length: steps + 1 }).map((_, index) => {
                 const tickValue = min + index * step
-                const active = tickValue <= safeValue
+                const active = reverse
+                  ? tickValue >= safeValue
+                  : tickValue <= safeValue
                 return (
                   <span
                     key={tickValue}
