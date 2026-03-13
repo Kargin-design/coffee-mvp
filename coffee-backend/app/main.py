@@ -42,6 +42,13 @@ ESPRESSO_SWEET_BASE = {
     "time": 28,
     "temp": 93.5,
 }
+ESPRESSO_BALANCE_BASE = {
+    "coffee": 18,
+    "water": 40,
+    "ratio": 2.2,
+    "time": 30,
+    "temp": 94,
+}
 
 
 def clamp(value: float, min_value: float, max_value: float) -> float:
@@ -165,6 +172,32 @@ def calc_espresso_sweet(
     }
 
 
+def calc_espresso_balance(
+    coffee: Optional[float],
+    water: Optional[float],
+) -> dict:
+    base = ESPRESSO_BALANCE_BASE
+    ratio = base["ratio"]
+
+    if coffee and not water:
+        water = coffee * ratio
+
+    if water and not coffee:
+        coffee = water / ratio
+
+    time = base["time"] * (coffee / base["coffee"]) ** 0.5
+
+    temp = base["temp"] + 0.15 * (coffee - base["coffee"])
+    temp = clamp(temp, 92, 96)
+
+    return {
+        "coffee": round(coffee, 1),
+        "water": round(water, 1),
+        "time": round(time),
+        "temp": round(temp, 1),
+    }
+
+
 @app.get("/api/calc/coffee")
 def calc_by_coffee(
     coffee: float = Query(..., gt=0, le=1000),
@@ -173,9 +206,11 @@ def calc_by_coffee(
     method: str = Query("v60"),
 ):
     if method == "espresso":
-        if mode != "sweet":
-            raise HTTPException(status_code=400, detail="mode not supported")
-        return calc_espresso_sweet(coffee, None)
+        if mode == "sweet":
+            return calc_espresso_sweet(coffee, None)
+        if mode == "balance":
+            return calc_espresso_balance(coffee, None)
+        raise HTTPException(status_code=400, detail="mode not supported")
     if mode == "custom":
         return calc_custom(coffee, None, ratio)
     base = resolve_base(mode)
@@ -190,9 +225,11 @@ def calc_by_water(
     method: str = Query("v60"),
 ):
     if method == "espresso":
-        if mode != "sweet":
-            raise HTTPException(status_code=400, detail="mode not supported")
-        return calc_espresso_sweet(None, water)
+        if mode == "sweet":
+            return calc_espresso_sweet(None, water)
+        if mode == "balance":
+            return calc_espresso_balance(None, water)
+        raise HTTPException(status_code=400, detail="mode not supported")
     if mode == "custom":
         return calc_custom(None, water, ratio)
     base = resolve_base(mode)

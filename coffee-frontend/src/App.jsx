@@ -170,7 +170,7 @@ function App() {
   }, [activeTab])
 
   useEffect(() => {
-    if (method === 'espresso' && activeTab !== 'sweet') {
+    if (method === 'espresso' && !['sweet', 'balance'].includes(activeTab)) {
       setActiveTab('sweet')
       return
     }
@@ -332,7 +332,7 @@ function App() {
                 tabRefs.current[1] = el
               }}
               onClick={() => setActiveTab('balance')}
-              disabled={method === 'espresso'}
+              disabled={method === 'espresso' && activeTab !== 'balance'}
             >
               Баланс
             </button>
