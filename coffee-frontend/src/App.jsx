@@ -10,6 +10,9 @@ const formatTime = (seconds) => {
   }
 
   const total = Math.max(0, Math.round(Number(seconds)))
+  if (total < 60) {
+    return `${total}s`
+  }
   const mins = Math.floor(total / 60)
   const secs = total % 60
   return `${mins}m${String(secs).padStart(2, '0')}s`
