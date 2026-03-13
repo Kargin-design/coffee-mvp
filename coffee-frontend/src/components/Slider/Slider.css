@@ -13,7 +13,7 @@
 
 .slider__track {
   position: relative;
-  height: 24px;
+  height: 30px;
   display: flex;
   align-items: center;
 }
@@ -23,7 +23,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 6px;
   border-radius: 999px;
   background: #e6e6e6;
 }
@@ -33,7 +33,7 @@
   position: absolute;
   left: 0;
   width: var(--percent, 0%);
-  height: 3px;
+  height: 6px;
   border-radius: 999px;
   background: #1d1d1f;
 }
@@ -72,8 +72,8 @@
 .slider__thumb {
   position: absolute;
   left: var(--percent, 0%);
-  width: 22px;
-  height: 22px;
+  width: 33px;
+  height: 33px;
   border-radius: 999px;
   background: #ffffff;
   border: 2px solid #1d1d1f;

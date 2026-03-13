@@ -159,13 +159,15 @@ function App() {
     setRatio(nextRatio)
     if (activeTab !== 'custom') return
 
-    if (lastEdited === 'water' && water.trim() !== '') {
-      updateFromWater(water, nextRatio)
+    if (coffee.trim() !== '') {
+      setLastEdited('coffee')
+      updateFromCoffee(coffee, nextRatio)
       return
     }
 
-    if (coffee.trim() !== '') {
-      updateFromCoffee(coffee, nextRatio)
+    if (water.trim() !== '') {
+      setLastEdited('water')
+      updateFromWater(water, nextRatio)
     }
   }
 
