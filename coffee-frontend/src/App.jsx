@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Input from './components/Input/Input'
+import v60Img from './assets/v60.webp'
 import './App.css'
 
 const formatTime = (seconds) => {
@@ -77,10 +78,7 @@ function App() {
           <h2 className="section__title">Способ приготовления</h2>
           <div className="methods">
             <button className="method method--active" type="button">
-              <div className="method__icon" aria-hidden="true">
-                <span className="method__cup" />
-                <span className="method__drip" />
-              </div>
+              <img className="method__image" src={v60Img} alt="Воронка V60" />
               <span className="method__label">Воронка V60</span>
             </button>
             <button className="method" type="button">
