@@ -49,6 +49,8 @@ function App() {
   }
 
   const resolveMode = () => (activeTab === 'custom' ? 'sweet' : activeTab)
+  const coffeePlaceholder = loading ? 'Загружаю' : 'Напр.18'
+  const waterPlaceholder = loading ? 'Загружаю' : 'Напр.250'
 
   const updateFromCoffee = async (value) => {
     const num = Number(value)
@@ -275,12 +277,19 @@ function App() {
                 value={coffee}
                 onChange={(event) => {
                   const next = event.target.value
+                  if (next.trim() === '0') {
+                    setLastEdited('coffee')
+                    setCoffee('')
+                    updateFromCoffee('')
+                    return
+                  }
                   setLastEdited('coffee')
                   setCoffee(next)
                   updateFromCoffee(next)
                 }}
                 suffix="Гр"
                 loading={loading}
+                placeholder={coffeePlaceholder}
               />
             </div>
             <div className="field">
@@ -289,12 +298,19 @@ function App() {
                 value={water}
                 onChange={(event) => {
                   const next = event.target.value
+                  if (next.trim() === '0') {
+                    setLastEdited('water')
+                    setWater('')
+                    updateFromWater('')
+                    return
+                  }
                   setLastEdited('water')
                   setWater(next)
                   updateFromWater(next)
                 }}
                 suffix="Мл"
                 loading={loading}
+                placeholder={waterPlaceholder}
               />
             </div>
             <div className="field">
