@@ -5,15 +5,19 @@ function Input({
   placeholder = '18',
   suffix = 'Гр',
   disabled = false,
+  loading = false,
   state,
   className = '',
   ...props
 }) {
-  const resolvedState = disabled ? 'disabled' : state
+  const resolvedState = disabled || loading ? 'disabled' : state
   const classes = ['input', className]
 
   if (resolvedState) {
     classes.push(`input--${resolvedState}`)
+  }
+  if (loading) {
+    classes.push('input--loading')
   }
 
   const inputProps = {
@@ -31,6 +35,7 @@ function Input({
   return (
     <label className={classes.join(' ')}>
       <input {...inputProps} />
+      {loading ? <span className="input__spinner" aria-hidden="true" /> : null}
       <span className="input__suffix">{suffix}</span>
     </label>
   )

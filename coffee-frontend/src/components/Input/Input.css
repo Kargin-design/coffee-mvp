@@ -23,6 +23,10 @@
   transition: border-color 0.15s ease;
 }
 
+.input--loading {
+  padding-right: 56px;
+}
+
 .input__field {
   width: 100%;
   border: 0;
@@ -36,6 +40,17 @@
 
 .input__field::placeholder {
   color: var(--input-placeholder);
+}
+
+.input__spinner {
+  position: absolute;
+  right: 32px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(161, 161, 161, 0.4);
+  border-top-color: #a1a1a1;
+  animation: input-spin 0.8s linear infinite;
 }
 
 .input__suffix {
@@ -62,4 +77,10 @@
 
 .input--disabled .input__field {
   cursor: not-allowed;
+}
+
+@keyframes input-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

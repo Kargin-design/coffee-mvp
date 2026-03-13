@@ -19,6 +19,7 @@ const API_BASE = import.meta.env.VITE_API_BASE || ''
 function App() {
   const [activeTab, setActiveTab] = useState('sweet')
   const [lastEdited, setLastEdited] = useState('coffee')
+  const [loading, setLoading] = useState(false)
   const [coffee, setCoffee] = useState('')
   const [water, setWater] = useState('')
   const [time, setTime] = useState('')
@@ -27,6 +28,7 @@ function App() {
   const indicatorRef = useRef(null)
   const tabRefs = useRef([])
   const springRef = useRef({ x: 0, vx: 0, w: 0, vw: 0, raf: null })
+  const requestIdRef = useRef(0)
 
   const resolveMode = () => (activeTab === 'custom' ? 'sweet' : activeTab)
 
@@ -39,17 +41,27 @@ function App() {
       return
     }
 
+    const requestId = ++requestIdRef.current
+    setLoading(true)
     const mode = resolveMode()
     const res = await fetch(
       `${API_BASE}/api/calc/coffee?coffee=${num}&mode=${mode}`
     )
-    if (!res.ok) return
+    if (!res.ok) {
+      if (requestId === requestIdRef.current) {
+        setLoading(false)
+      }
+      return
+    }
 
     const data = await res.json()
-    setCoffee(String(data.coffee))
-    setWater(String(data.water))
-    setTime(formatTime(data.time))
-    setTemp(String(data.temp))
+    if (requestId === requestIdRef.current) {
+      setCoffee(String(data.coffee))
+      setWater(String(data.water))
+      setTime(formatTime(data.time))
+      setTemp(String(data.temp))
+      setLoading(false)
+    }
   }
 
   const updateFromWater = async (value) => {
@@ -61,22 +73,33 @@ function App() {
       return
     }
 
+    const requestId = ++requestIdRef.current
+    setLoading(true)
     const mode = resolveMode()
     const res = await fetch(
       `${API_BASE}/api/calc/water?water=${num}&mode=${mode}`
     )
-    if (!res.ok) return
+    if (!res.ok) {
+      if (requestId === requestIdRef.current) {
+        setLoading(false)
+      }
+      return
+    }
 
     const data = await res.json()
-    setCoffee(String(data.coffee))
-    setWater(String(data.water))
-    setTime(formatTime(data.time))
-    setTemp(String(data.temp))
+    if (requestId === requestIdRef.current) {
+      setCoffee(String(data.coffee))
+      setWater(String(data.water))
+      setTime(formatTime(data.time))
+      setTemp(String(data.temp))
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
-    setLastEdited('coffee')
-    updateFromCoffee('18')
+    setLastEdited('water')
+    setWater('250')
+    updateFromWater('250')
   }, [])
 
   useEffect(() => {
@@ -239,6 +262,7 @@ function App() {
                   updateFromCoffee(next)
                 }}
                 suffix="Гр"
+                loading={loading}
               />
             </div>
             <div className="field">
@@ -252,15 +276,16 @@ function App() {
                   updateFromWater(next)
                 }}
                 suffix="Мл"
+                loading={loading}
               />
             </div>
             <div className="field">
               <label className="field__label">Время приготовления</label>
-              <Input value={time} suffix="Сек" disabled />
+              <Input value={time} suffix="Сек" disabled loading={loading} />
             </div>
             <div className="field">
               <label className="field__label">Температура</label>
-              <Input value={temp} suffix="°C" disabled />
+              <Input value={temp} suffix="°C" disabled loading={loading} />
             </div>
           </div>
         </section>
