@@ -293,7 +293,7 @@ function App() {
               />
             </div>
             <div className="field">
-              <label className="field__label">Кофе в зернах</label>
+              <label className="field__label">Вода</label>
               <Input
                 value={water}
                 onChange={(event) => {
