@@ -51,6 +51,8 @@ function App() {
   const resolveMode = () => (activeTab === 'custom' ? 'sweet' : activeTab)
   const coffeePlaceholder = loading ? 'Загружаю' : 'Напр.18'
   const waterPlaceholder = loading ? 'Загружаю' : 'Напр.250'
+  const showEmptyState = coffee.trim() === '' && water.trim() === ''
+  const statusPlaceholder = showEmptyState ? '-' : 'Загружаю'
 
   const updateFromCoffee = async (value) => {
     const num = Number(value)
@@ -315,11 +317,23 @@ function App() {
             </div>
             <div className="field">
               <label className="field__label">Время приготовления</label>
-              <Input value={time} suffix="Сек" disabled loading={loading} />
+              <Input
+                value={time}
+                suffix="Сек"
+                disabled
+                loading={loading}
+                placeholder={statusPlaceholder}
+              />
             </div>
             <div className="field">
               <label className="field__label">Температура</label>
-              <Input value={temp} suffix="°C" disabled loading={loading} />
+              <Input
+                value={temp}
+                suffix="°C"
+                disabled
+                loading={loading}
+                placeholder={statusPlaceholder}
+              />
             </div>
           </div>
         </section>
