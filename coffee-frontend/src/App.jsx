@@ -385,7 +385,8 @@ function App() {
               max={18}
               step={1}
               onChange={handleRatioChange}
-              reverse
+              leftLabel="Более насыщенно"
+              rightLabel="Менее насыщенно"
             />
           </section>
         ) : null}
