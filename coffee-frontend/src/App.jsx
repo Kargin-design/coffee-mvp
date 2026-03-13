@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Input from './components/Input/Input'
+import Slider from './components/Slider/Slider'
 import v60Img from './assets/v60.webp'
 import './App.css'
 
@@ -24,6 +25,7 @@ function App() {
   const [water, setWater] = useState('')
   const [time, setTime] = useState('')
   const [temp, setTemp] = useState('')
+  const [ratio, setRatio] = useState(16)
   const segmentRef = useRef(null)
   const indicatorRef = useRef(null)
   const tabRefs = useRef([])
@@ -337,6 +339,12 @@ function App() {
             </div>
           </div>
         </section>
+
+        {activeTab === 'custom' ? (
+          <section className="section custom-slider">
+            <Slider value={ratio} min={12} max={18} step={1} onChange={setRatio} />
+          </section>
+        ) : null}
       </div>
     </main>
   )
