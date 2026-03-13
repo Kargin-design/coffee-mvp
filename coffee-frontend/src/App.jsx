@@ -59,6 +59,10 @@ function App() {
   const waterPlaceholder = loading ? 'Загружаю' : 'Напр.250'
   const showEmptyState = coffee.trim() === '' && water.trim() === ''
   const statusPlaceholder = showEmptyState ? '-' : 'Загружаю'
+  const sliderConfig =
+    method === 'espresso'
+      ? { min: 1.5, max: 3, step: 0.1 }
+      : { min: 12, max: 18, step: 1 }
 
   const buildUrl = (path, params) => {
     const search = new URLSearchParams()
@@ -177,6 +181,21 @@ function App() {
       updateFromCoffee(coffee, ratioParam)
     }
   }, [method])
+
+  useEffect(() => {
+    if (activeTab !== 'custom') return
+    const nextRatio = method === 'espresso' ? 2 : 16
+    setRatio(nextRatio)
+
+    if (lastEdited === 'water' && water.trim() !== '') {
+      updateFromWater(water, nextRatio)
+      return
+    }
+
+    if (coffee.trim() !== '') {
+      updateFromCoffee(coffee, nextRatio)
+    }
+  }, [method, activeTab])
 
   const handleRatioChange = (nextRatio) => {
     setRatio(nextRatio)
@@ -327,7 +346,6 @@ function App() {
                 tabRefs.current[1] = el
               }}
               onClick={() => setActiveTab('balance')}
-              disabled={method === 'espresso' && activeTab !== 'balance'}
             >
               Баланс
             </button>
@@ -413,9 +431,9 @@ function App() {
           <section className="section custom-slider">
             <Slider
               value={ratio}
-              min={12}
-              max={18}
-              step={1}
+              min={sliderConfig.min}
+              max={sliderConfig.max}
+              step={sliderConfig.step}
               onChange={handleRatioChange}
               leftLabel="Более насыщенно"
               rightLabel="Менее насыщенно"
